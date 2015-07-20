@@ -25,9 +25,9 @@
   </organization>
 
     <scm>
-        <connection>scm:git:git://github.com/greese/dasein-cloud-virtustream.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/greese/dasein-cloud-virtustream.git </developerConnection>
-        <url>http://github.com/greese/dasein-cloud-virtustream.git </url>
+        <connection>scm:git:git://github.com/dasein-cloud/dasein-cloud-virtustream.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/dasein-cloud/dasein-cloud-virtustream.git </developerConnection>
+        <url>http://github.com/dasein-cloud/dasein-cloud-virtustream.git </url>
     </scm>
     
   <parent>
