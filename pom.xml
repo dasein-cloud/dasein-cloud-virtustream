@@ -3,7 +3,7 @@
   
   <groupId>org.dasein</groupId>
   <artifactId>dasein-cloud-virtustream</artifactId>
-  <version>2015.06.2</version>
+  <version>2015.06.4-SNAPSHOT</version>
   
   <name>Dasein Cloud Virtustream</name>
   <description>Dasein Cloud implementation for the Virtustream cloud</description>
@@ -25,9 +25,9 @@
   </organization>
 
     <scm>
-        <connection>scm:git:git://github.com/greese/dasein-cloud-virtustream.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/greese/dasein-cloud-virtustream.git </developerConnection>
-        <url>http://github.com/greese/dasein-cloud-virtustream.git </url>
+        <connection>scm:git:git://github.com/dasein-cloud/dasein-cloud-virtustream.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/dasein-cloud/dasein-cloud-virtustream.git </developerConnection>
+        <url>http://github.com/dasein-cloud/dasein-cloud-virtustream.git </url>
     </scm>
     
   <parent>
