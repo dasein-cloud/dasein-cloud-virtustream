@@ -519,8 +519,7 @@ public class VirtualMachines extends AbstractVMSupport {
         return password.toString();
     }
 
-    @Override
-    public Iterable<VirtualMachineProduct> listProducts(VirtualMachineProductFilterOptions options, Architecture architecture) throws InternalException, CloudException {
+    protected Iterable<VirtualMachineProduct> listProducts(VirtualMachineProductFilterOptions options, Architecture architecture) throws InternalException, CloudException {
         String cacheName = "productsALL";
         if( architecture != null ) {
             cacheName = "products" + architecture.name();
