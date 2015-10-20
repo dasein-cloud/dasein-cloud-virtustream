@@ -155,6 +155,12 @@ public class VMCapabilities extends AbstractCapabilities<Virtustream> implements
 
     @Nonnull
     @Override
+    public Requirement identifyUsernameRequirement() throws CloudException, InternalException {
+        return Requirement.NONE;
+    }
+
+    @Nonnull
+    @Override
     public Requirement identifyPasswordRequirement(Platform platform) throws CloudException, InternalException {
         return Requirement.NONE;
     }
