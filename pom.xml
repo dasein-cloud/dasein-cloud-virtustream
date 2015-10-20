@@ -3,10 +3,11 @@
   
   <groupId>org.dasein</groupId>
   <artifactId>dasein-cloud-virtustream</artifactId>
-  <version>2015.06.3</version>
+  <version>2015.10.1</version>
   
   <name>Dasein Cloud Virtustream</name>
   <description>Dasein Cloud implementation for the Virtustream cloud</description>
+    <url>http://github.com/dasein-cloud/dasein-cloud-virtustream</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -28,20 +29,15 @@
         <connection>scm:git:git://github.com/dasein-cloud/dasein-cloud-virtustream.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/dasein-cloud/dasein-cloud-virtustream.git </developerConnection>
         <url>http://github.com/dasein-cloud/dasein-cloud-virtustream.git </url>
-    </scm>
-    
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>5</version>
-  </parent>
+      <tag>dasein-cloud-virtustream-2015.10.1</tag>
+  </scm>
           
   <dependencies>
       <!-- Compile -->
     <dependency>
         <groupId>org.dasein</groupId>
         <artifactId>dasein-cloud-core</artifactId>
-        <version>2015.06.1</version>
+        <version>2015.10.1</version>
         <scope>compile</scope>
         <optional>false</optional>
     </dependency>   
@@ -69,7 +65,7 @@
       <dependency>
           <groupId>org.dasein</groupId>
           <artifactId>dasein-cloud-test</artifactId>
-          <version>2015.06.1</version>
+          <version>2015.10.2</version>
           <scope>test</scope>
           <optional>false</optional>
       </dependency>
@@ -88,8 +84,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.0.2</version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
       </plugin>  
       <plugin>
@@ -157,7 +153,7 @@
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-release-plugin</artifactId>
-            <version>2.1</version>
+            <version>2.5.3</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -217,7 +213,32 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>           
+      </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+                <execution>
+                    <id>sign-artifacts</id>
+                    <phase>deploy</phase>
+                    <goals>
+                        <goal>sign</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.3</version>
+            <extensions>true</extensions>
+            <configuration>
+                <serverId>sonatype-nexus-staging</serverId>
+                <nexusUrl>https://oss.sonatype.org</nexusUrl>
+                <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
   

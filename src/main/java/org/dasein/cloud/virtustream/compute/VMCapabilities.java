@@ -137,6 +137,12 @@ public class VMCapabilities extends AbstractCapabilities<Virtustream> implements
 
     @Nonnull
     @Override
+    public String[] getVirtualMachineReservedUserNames() {
+        return new String[0];
+    }
+
+    @Nonnull
+    @Override
     public Requirement identifyDataCenterLaunchRequirement() throws CloudException, InternalException {
         return Requirement.REQUIRED;
     }
@@ -145,6 +151,12 @@ public class VMCapabilities extends AbstractCapabilities<Virtustream> implements
     @Override
     public Requirement identifyImageRequirement(@Nonnull ImageClass cls) throws CloudException, InternalException {
         return (ImageClass.MACHINE.equals(cls) ? Requirement.REQUIRED : Requirement.OPTIONAL);
+    }
+
+    @Nonnull
+    @Override
+    public Requirement identifyUsernameRequirement() throws CloudException, InternalException {
+        return Requirement.NONE;
     }
 
     @Nonnull
@@ -205,6 +217,11 @@ public class VMCapabilities extends AbstractCapabilities<Virtustream> implements
 
     @Override
     public boolean isUserDefinedPrivateIPSupported() throws CloudException, InternalException {
+        return false;
+    }
+
+    @Override
+    public boolean isRootPasswordSSHKeyEncrypted() throws CloudException, InternalException {
         return false;
     }
 

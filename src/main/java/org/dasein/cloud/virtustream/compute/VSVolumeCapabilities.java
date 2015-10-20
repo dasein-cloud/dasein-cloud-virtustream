@@ -67,16 +67,6 @@ public class VSVolumeCapabilities extends AbstractCapabilities<Virtustream> impl
     }
 
     @Override
-    public int getMaximumVolumeProductIOPS() throws InternalException, CloudException {
-        return LIMIT_UNKNOWN;
-    }
-
-    @Override
-    public int getMinimumVolumeProductIOPS() throws InternalException, CloudException {
-        return LIMIT_UNKNOWN;
-    }
-
-    @Override
     public int getMaximumVolumeSizeIOPS() throws InternalException, CloudException {
         return LIMIT_UNKNOWN;
     }
@@ -179,7 +169,22 @@ public class VSVolumeCapabilities extends AbstractCapabilities<Virtustream> impl
     }
 
     @Override
+    public boolean supportsAttach() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsDetach() {
+        return false;
+    }
+
+    @Override
     public @Nonnull Requirement getDeviceIdOnAttachRequirement(){
         return Requirement.REQUIRED;
+    }
+
+    @Override
+    public boolean supportsIOPSVolumes() throws InternalException, CloudException {
+        return false;
     }
 }
