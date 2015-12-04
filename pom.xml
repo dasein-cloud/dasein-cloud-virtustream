@@ -31,6 +31,26 @@
         <url>http://github.com/dasein-cloud/dasein-cloud-virtustream.git </url>
       <tag>HEAD</tag>
   </scm>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <skip.unit.tests>false</skip.unit.tests>
+                <skip.int.tests>true</skip.int.tests>
+            </properties>
+        </profile>
+        <profile>
+            <id>integration</id>
+            <properties>
+                <skip.unit.tests>true</skip.unit.tests>
+                <skip.int.tests>false</skip.int.tests>
+            </properties>
+        </profile>
+    </profiles>
           
   <dependencies>
       <!-- Compile -->
@@ -155,11 +175,26 @@
             <artifactId>maven-release-plugin</artifactId>
             <version>2.5.3</version>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+        <!-- unit tests -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.18.1</version>
+            <configuration>
+                <skipTests>${skip.unit.tests}</skipTests>
+                <excludes>
+                    <exclude>**/TestSuite.class</exclude>
+                </excludes>
+            </configuration>
+        </plugin>
+
+        <!-- integration tests -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.6</version>
         <configuration>
+            <skipTests>${skip.int.tests}</skipTests>
             <systemProperties>
                 <property>
                     <name>providerClass</name>
@@ -194,11 +229,19 @@
                     <value>${regionId}</value>
                 </property>
             </systemProperties>
-          <excludes>
-             <exclude>**/TestSuite.java</exclude>
-          </excludes>
+          <includes>
+             <include>**/TestSuite.java</include>
+          </includes>
             <!--  <argLine>-Ddasein.inclusions=StatefulFirewallTests</argLine>   -->
         </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>integration-test</goal>
+                        <goal>verify</goal>
+                    </goals>
+                </execution>
+            </executions>
       </plugin> 
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
