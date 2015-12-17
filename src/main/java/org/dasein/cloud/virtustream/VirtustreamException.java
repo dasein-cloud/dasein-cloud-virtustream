@@ -19,6 +19,8 @@
 
 package org.dasein.cloud.virtustream;
 
+import org.apache.http.HttpStatus;
+import org.dasein.cloud.AuthenticationException;
 import org.dasein.cloud.CloudErrorType;
 import org.dasein.cloud.CloudException;
 
@@ -32,5 +34,8 @@ public class VirtustreamException extends CloudException {
 
     public VirtustreamException(@Nonnull CloudErrorType type, @Nonnegative int httpCode, @Nonnull String providerCode, @Nonnull String message) {
         super(type, httpCode, providerCode, message);
+        if (httpCode == HttpStatus.SC_UNAUTHORIZED || httpCode == HttpStatus.SC_FORBIDDEN) {
+            this.errorType = CloudErrorType.AUTHENTICATION;
+        }
     }
 }

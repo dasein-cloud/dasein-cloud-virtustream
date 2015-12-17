@@ -38,11 +38,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.dasein.cloud.CloudErrorType;
-import org.dasein.cloud.CloudException;
-import org.dasein.cloud.ContextRequirements;
-import org.dasein.cloud.InternalException;
-import org.dasein.cloud.ProviderContext;
+import org.dasein.cloud.*;
 import org.dasein.cloud.util.APITrace;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -254,7 +250,7 @@ public class VirtustreamMethod {
                         status = response.getStatusLine();
                     } catch (IOException e) {
                         logger.error("Failed to execute HTTP request due to a cloud I/O error: " + e.getMessage());
-                        throw new CloudException(e);
+                        throw new CommunicationException("Failed to execute HTTP request", e);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("HTTP Status " + status);
@@ -366,9 +362,6 @@ public class VirtustreamMethod {
                 try {
                     ProviderContext ctx = provider.getContext();
 
-                    if (ctx == null) {
-                        throw new InternalException("No context was set");
-                    }
                     HttpPost post = new HttpPost(target);
                     String auth;
 
@@ -394,12 +387,7 @@ public class VirtustreamMethod {
                     post.addHeader("Content-Type", "application/json; charset=utf-8");
                     post.addHeader("Accept", "application/json");
                     post.addHeader("Authorization", "Keypair " + auth);
-                    try {
-                        post.setEntity(new StringEntity(body, "utf-8"));
-                    } catch (UnsupportedEncodingException e) {
-                        logger.error("Unsupported encoding UTF-8: " + e.getMessage());
-                        throw new InternalException(e);
-                    }
+                    post.setEntity(new StringEntity(body, "utf-8"));
 
                     if (wire.isDebugEnabled()) {
                         wire.debug(post.getRequestLine().toString());
@@ -419,7 +407,7 @@ public class VirtustreamMethod {
                         status = response.getStatusLine();
                     } catch (IOException e) {
                         logger.error("Failed to execute HTTP request due to a cloud I/O error: " + e.getMessage());
-                        throw new CloudException(e);
+                        throw new CommunicationException("Failed to execute HTTP request", e);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("HTTP Status " + status);
@@ -583,7 +571,7 @@ public class VirtustreamMethod {
                         status = response.getStatusLine();
                     } catch (IOException e) {
                         logger.error("Failed to execute HTTP request due to a cloud I/O error: " + e.getMessage());
-                        throw new CloudException(e);
+                        throw new CommunicationException("Failed to execute HTTP request", e);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("HTTP Status " + status);

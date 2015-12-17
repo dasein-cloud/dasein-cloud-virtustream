@@ -20,10 +20,7 @@
 package org.dasein.cloud.virtustream.compute;
 
 import org.apache.log4j.Logger;
-import org.dasein.cloud.CloudException;
-import org.dasein.cloud.InternalException;
-import org.dasein.cloud.OperationNotSupportedException;
-import org.dasein.cloud.ResourceStatus;
+import org.dasein.cloud.*;
 import org.dasein.cloud.compute.*;
 import org.dasein.cloud.dc.DataCenter;
 import org.dasein.cloud.util.APITrace;
@@ -80,7 +77,10 @@ public class Volumes extends AbstractVolumeSupport {
                 throw new OperationNotSupportedException("Creating volumes from snapshots not supported in "+provider.getCloudName());
             }
             if (options.getProviderVirtualMachineId() == null) {
-                throw new CloudException("Volumes can only be created in the context of vms in "+provider.getCloudName()+". VM is null");
+                //todo
+                //this isn't really a dasein problem but neither is it a fault returned from the cloud
+                //should we have a new exception for errors due to user/client provided data?
+                throw new InternalException("Volumes can only be created in the context of vms in "+provider.getCloudName()+". VM is null");
             }
             VirtustreamMethod method = new VirtustreamMethod(provider);
             String vmId = options.getProviderVirtualMachineId();
@@ -117,7 +117,7 @@ public class Volumes extends AbstractVolumeSupport {
             String storageId = findAvailableStorage(capacityKB, dc);
             if (storageId == null) {
                 logger.error("No available storage resource in datacenter "+dc.getName());
-                throw new CloudException("No available storage resource in datacenter "+dc.getName());
+                throw new ResourceNotFoundException("No available storage resource in datacenter "+dc.getName());
             }
 
             //add new disk
@@ -165,29 +165,11 @@ public class Volumes extends AbstractVolumeSupport {
                     throw new InternalException("Unable to parse JSON "+e.getMessage());
                 }
             }
-            throw new CloudException("Can't find new volume");
+            throw new ResourceNotFoundException("Can't find new volume");
         }
         finally {
             APITrace.end();
         }
-    }
-
-    @Nullable
-    @Override
-    public Storage<Gigabyte> getMaximumVolumeSize() throws InternalException, CloudException {
-        return new Storage<Gigabyte>(1024, Storage.GIGABYTE);
-    }
-
-    @Nonnull
-    @Override
-    public Storage<Gigabyte> getMinimumVolumeSize() throws InternalException, CloudException {
-        return new Storage<Gigabyte>(1, Storage.GIGABYTE);
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForVolume(@Nonnull Locale locale) {
-        return "Disk";
     }
 
     @Override
@@ -199,51 +181,6 @@ public class Volumes extends AbstractVolumeSupport {
         finally {
             APITrace.end();
         }
-    }
-
-    @Nonnull
-    @Override
-    public Iterable<String> listPossibleDeviceIds(@Nonnull Platform platform) throws InternalException, CloudException {
-        Cache<String> cache;
-
-        if( platform.isWindows() ) {
-            cache = Cache.getInstance(getProvider(), "windowsDeviceIds", String.class, CacheLevel.CLOUD);
-        }
-        else {
-            cache = Cache.getInstance(getProvider(), "unixDeviceIds", String.class, CacheLevel.CLOUD);
-        }
-        Iterable<String> ids = cache.get(getContext());
-
-        if( ids == null ) {
-            ArrayList<String> list = new ArrayList<String>();
-
-            if( platform.isWindows() ) {
-                list.add("hda");
-                list.add("hdb");
-                list.add("hdc");
-                list.add("hdd");
-                list.add("hde");
-                list.add("hdf");
-                list.add("hdg");
-                list.add("hdh");
-                list.add("hdi");
-                list.add("hdj");
-            }
-            else {
-                list.add("/dev/sda");
-                list.add("/dev/sdb");
-                list.add("/dev/sdc");
-                list.add("/dev/sdd");
-                list.add("/dev/sde");
-                list.add("/dev/sdf");
-                list.add("/dev/sdg");
-                list.add("/dev/sdh");
-                list.add("/dev/sdi");
-            }
-            ids = Collections.unmodifiableList(list);
-            cache.put(getContext(), ids);
-        }
-        return ids;
     }
 
     @Nonnull
@@ -377,7 +314,7 @@ public class Volumes extends AbstractVolumeSupport {
                     }
                 }
                 else {
-                    throw new CloudException("Cannot find volume with id "+volumeId);
+                    throw new ResourceNotFoundException("Cannot find volume with id "+volumeId);
                 }
             }
             catch (JSONException e) {
@@ -516,7 +453,7 @@ public class Volumes extends AbstractVolumeSupport {
                 }
                 if (map.isEmpty()) {
                     logger.error("No available storage in datacenter "+dataCenter.getName()+" - require "+capacityKB+"KB");
-                    throw new CloudException("No available storage in datacenter "+dataCenter.getName()+" - require "+capacityKB+"KB");
+                    throw new GeneralCloudException("No available storage in datacenter "+dataCenter.getName()+" - require "+capacityKB+"KB", CloudErrorType.CAPACITY);
                 }
                 if (map.size() == 1) {
                     return map.keySet().iterator().next();
@@ -556,7 +493,7 @@ public class Volumes extends AbstractVolumeSupport {
                     return computeId;
                 }
                 logger.error("No available resource pool with id "+resourcePoolID);
-                throw new CloudException("No available resource pool with id "+resourcePoolID);
+                throw new ResourceNotFoundException("No available resource pool with id "+resourcePoolID);
             }
             catch (JSONException e) {
                 logger.error(e);

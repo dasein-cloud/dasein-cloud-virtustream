@@ -20,9 +20,7 @@
 package org.dasein.cloud.virtustream.compute;
 
 import org.apache.log4j.Logger;
-import org.dasein.cloud.CloudException;
-import org.dasein.cloud.InternalException;
-import org.dasein.cloud.ResourceStatus;
+import org.dasein.cloud.*;
 import org.dasein.cloud.compute.AbstractVMSupport;
 import org.dasein.cloud.compute.Architecture;
 import org.dasein.cloud.compute.MachineImage;
@@ -99,7 +97,7 @@ public class VirtualMachines extends AbstractVMSupport {
         try {
             VirtualMachine vm = getVirtualMachine(virtualMachineId);
             if (vm == null) {
-                throw new InternalException("Vm with id "+virtualMachineId+" does not exist.");
+                throw new ResourceNotFoundException("Vm with id "+virtualMachineId+" does not exist.");
             }
             VirtustreamMethod method = new VirtustreamMethod(provider);
 
@@ -194,7 +192,7 @@ public class VirtualMachines extends AbstractVMSupport {
             }
             if (newVMId == null) {
                 logger.error("Vm was cloned without error but new id not returned");
-                throw new CloudException("Vm was cloned without error but new id not returned");
+                throw new ResourceNotFoundException("Vm was cloned without error but new id not returned");
             }
             long timeout = System.currentTimeMillis()+(CalendarWrapper.MINUTE * 30);
             VirtualMachine vm = getVirtualMachine(newVMId);
@@ -208,7 +206,7 @@ public class VirtualMachines extends AbstractVMSupport {
                 }
                 catch (InterruptedException ignore) {}
             }
-            throw new CloudException("Vm was cloned without error but new vm not found");
+            throw new ResourceNotFoundException("Vm was cloned without error but new vm not found");
         }
         finally {
             APITrace.end();
@@ -365,14 +363,14 @@ public class VirtualMachines extends AbstractVMSupport {
                 }
                 if (resourcePoolId == null) {
                     logger.error("No available resource pool in datacenter "+dc.getName());
-                    throw new CloudException("No available resource pool in datacenter "+dc.getName());
+                    throw new ResourceNotFoundException("No available resource pool in datacenter "+dc.getName());
                 }
 
                 //find a suitable storage location for the hard disk
                 String storageId = findAvailableStorage(capacityKB, dc);
                 if (storageId == null) {
                     logger.error("No available storage resource in datacenter "+dc.getName());
-                    throw new CloudException("No available storage resource in datacenter "+dc.getName());
+                    throw new ResourceNotFoundException("No available storage resource in datacenter "+dc.getName());
                 }
                 JSONObject disk = new JSONObject();
                 disk.put("StorageID", storageId);
@@ -479,12 +477,13 @@ public class VirtualMachines extends AbstractVMSupport {
                      //   vm.setRootPassword(password);
                         if (vm == null) {
                             logger.error("VM was launched and new id returned but it has not been found by Virtustream");
+                            throw new ResourceNotFoundException("VM was launched and new id returned ("+vmId+") but it has not been found by Virtustream");
                         }
                         return vm;
                     }
                 }
                 logger.error("Vm was launched without error but new id not returned");
-                throw new CloudException("Vm was launched without error but new id not returned");
+                throw new ResourceNotFoundException("Vm was launched without error but new id not returned");
             }
             catch (JSONException e) {
                 logger.error(e);
@@ -811,7 +810,7 @@ public class VirtualMachines extends AbstractVMSupport {
             }
             else {
                 logger.error("Server not stopping so can't be deleted");
-                throw new CloudException("Server not stopping so can't be deleted");
+                throw new GeneralCloudException("Server not stopping so can't be deleted", CloudErrorType.INVALID_STATE);
             }
         }
         finally {
@@ -1081,7 +1080,7 @@ public class VirtualMachines extends AbstractVMSupport {
                 }
                 if (map.isEmpty()) {
                     logger.error("No available storage in datacenter "+dataCenter.getName()+" - require "+capacityKB+"KB");
-                    throw new CloudException("No available storage in datacenter "+dataCenter.getName()+" - require "+capacityKB+"KB");
+                    throw new GeneralCloudException("No available storage in datacenter "+dataCenter.getName()+" - require "+capacityKB+"KB", CloudErrorType.CAPACITY);
                 }
                 if (map.size() == 1) {
                     return map.keySet().iterator().next();

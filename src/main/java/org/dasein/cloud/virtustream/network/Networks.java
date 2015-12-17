@@ -68,24 +68,6 @@ public class Networks extends AbstractVLANSupport {
         return capabilities;
     }
 
-    @Nonnull
-    @Override
-    public String getProviderTermForNetworkInterface(@Nonnull Locale locale) {
-        return "NIC";
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForSubnet(@Nonnull Locale locale) {
-        return "Network";
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForVlan(@Nonnull Locale locale) {
-        return "Network";
-    }
-
     @Override
     public VLAN getVlan(@Nonnull String vlanId) throws CloudException, InternalException {
         APITrace.begin(provider, GET_NETWORK);
@@ -125,6 +107,11 @@ public class Networks extends AbstractVLANSupport {
     }
 
     @Override
+    public boolean isNetworkInterfaceSupportEnabled() throws CloudException, InternalException {
+        return false;
+    }
+
+    @Override
     public boolean isSubscribed() throws CloudException, InternalException {
         APITrace.begin(provider, IS_SUBSCRIBED);
         try {
@@ -142,24 +129,10 @@ public class Networks extends AbstractVLANSupport {
         }
     }
 
-    @Override
-    public boolean isVlanDataCenterConstrained() throws CloudException, InternalException {
-        return true;
-    }
-
     @Nonnull
     @Override
     public Collection<InternetGateway> listInternetGateways(@Nullable String vlanId) throws CloudException, InternalException {
         return Collections.emptyList();
-    }
-
-    @Nonnull
-    @Override
-    public Iterable<IPVersion> listSupportedIPVersions() throws CloudException, InternalException {
-        ArrayList<IPVersion> list = new ArrayList<IPVersion>();
-        list.add(IPVersion.IPV4);
-        list.add(IPVersion.IPV6);
-        return list;
     }
 
     @Nonnull
