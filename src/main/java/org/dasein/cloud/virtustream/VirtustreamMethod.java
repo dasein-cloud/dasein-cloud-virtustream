@@ -92,9 +92,29 @@ public class VirtustreamMethod {
     static public final int BAD_REQUEST = 400;
 
     /**
+     * 401	Unauthorised    credentials don't match a valid account
+     */
+    static public final int UNAUTHORISED = 401;
+
+    /**
+     * 403	Forbidden   permissions issue with the credentials
+     */
+    static public final int FORBIDDEN = 403;
+
+    /**
      * 404	Not Found	Command, drive, server or other object not found
      */
     static public final int NOT_FOUND = 404;
+
+    /**
+     * 429 Too many requests	The user has sent too many requests in a given amount of time
+     */
+    static public final int TOO_MANY_REQUESTS = 429;
+
+    /**
+     * 503	Service Unavailable     The server is currently unavailable (because it is overloaded or down for maintenance).
+     */
+    static public final int SERVICE_UNAVAILABLE = 503;
 
     private Virtustream provider;
 
@@ -275,9 +295,29 @@ public class VirtustreamMethod {
                         logger.error("Expected OK for GET request, got " + status.getStatusCode());
                         HttpEntity entity = response.getEntity();
                         String body;
+                        CloudErrorType errorType;
+
+                        switch ((status.getStatusCode())) {
+                            case BAD_REQUEST:
+                                errorType = CloudErrorType.INVALID_USER_DATA;
+                                break;
+                            case UNAUTHORISED:
+                            case FORBIDDEN:
+                                errorType = CloudErrorType.AUTHENTICATION;
+                                break;
+                            case SERVICE_UNAVAILABLE:
+                                errorType = CloudErrorType.COMMUNICATION;
+                                break;
+                            case TOO_MANY_REQUESTS:
+                                errorType = CloudErrorType.THROTTLING;
+                                break;
+                            default:
+                                errorType = CloudErrorType.GENERAL;
+                                break;
+                        }
 
                         if (entity == null) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
                         }
                         try {
                             body = EntityUtils.toString(entity);
@@ -295,9 +335,9 @@ public class VirtustreamMethod {
                         String errorMessage = parseError(body);
 
                         if (errorMessage != null && errorMessage.length() > 0) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), errorMessage);
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), errorMessage);
                         }
-                        throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), errorMessage);
+                        throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), errorMessage);
                     } else {
                         HttpEntity entity = response.getEntity();
 
@@ -431,9 +471,28 @@ public class VirtustreamMethod {
                     if (status.getStatusCode() != OK && status.getStatusCode() != NO_CONTENT && status.getStatusCode() != CREATED && status.getStatusCode() != ACCEPTED) {
                         logger.error("Expected OK for POST request, got " + status.getStatusCode());
                         HttpEntity entity = response.getEntity();
+                        CloudErrorType errorType;
 
+                        switch ((status.getStatusCode())) {
+                            case BAD_REQUEST:
+                                errorType = CloudErrorType.INVALID_USER_DATA;
+                                break;
+                            case UNAUTHORISED:
+                            case FORBIDDEN:
+                                errorType = CloudErrorType.AUTHENTICATION;
+                                break;
+                            case SERVICE_UNAVAILABLE:
+                                errorType = CloudErrorType.COMMUNICATION;
+                                break;
+                            case TOO_MANY_REQUESTS:
+                                errorType = CloudErrorType.THROTTLING;
+                                break;
+                            default:
+                                errorType = CloudErrorType.GENERAL;
+                                break;
+                        }
                         if (entity == null) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
                         }
                         try {
                             body = EntityUtils.toString(entity);
@@ -444,7 +503,7 @@ public class VirtustreamMethod {
                             wire.debug(body);
                         }
                         wire.debug("");
-                        throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), body);
+                        throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), body);
                     } else {
                         HttpEntity entity = response.getEntity();
 
@@ -595,9 +654,29 @@ public class VirtustreamMethod {
                     if (status.getStatusCode() != OK && status.getStatusCode() != NO_CONTENT && status.getStatusCode() != CREATED && status.getStatusCode() != ACCEPTED) {
                         logger.error("Expected OK for POST request, got " + status.getStatusCode());
                         HttpEntity entity = response.getEntity();
+                        CloudErrorType errorType;
+
+                        switch ((status.getStatusCode())) {
+                            case BAD_REQUEST:
+                                errorType = CloudErrorType.INVALID_USER_DATA;
+                                break;
+                            case UNAUTHORISED:
+                            case FORBIDDEN:
+                                errorType = CloudErrorType.AUTHENTICATION;
+                                break;
+                            case SERVICE_UNAVAILABLE:
+                                errorType = CloudErrorType.COMMUNICATION;
+                                break;
+                            case TOO_MANY_REQUESTS:
+                                errorType = CloudErrorType.THROTTLING;
+                                break;
+                            default:
+                                errorType = CloudErrorType.GENERAL;
+                                break;
+                        }
 
                         if (entity == null) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
                         }
                         try {
                             body = EntityUtils.toString(entity);
@@ -608,7 +687,7 @@ public class VirtustreamMethod {
                             wire.debug(body);
                         }
                         wire.debug("");
-                        throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), body);
+                        throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), body);
                     } else {
                         HttpEntity entity = response.getEntity();
 
