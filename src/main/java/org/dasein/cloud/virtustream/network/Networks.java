@@ -26,8 +26,8 @@ import org.dasein.cloud.InternalException;
 import org.dasein.cloud.ResourceStatus;
 import org.dasein.cloud.Tag;
 import org.dasein.cloud.network.AbstractVLANSupport;
-import org.dasein.cloud.network.InternetGateway;
 import org.dasein.cloud.network.IPVersion;
+import org.dasein.cloud.network.InternetGateway;
 import org.dasein.cloud.network.VLAN;
 import org.dasein.cloud.network.VLANCapabilities;
 import org.dasein.cloud.network.VLANState;
@@ -43,7 +43,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Locale;
 
 public class Networks extends AbstractVLANSupport {
     static private final Logger logger = Logger.getLogger(Networks.class);
@@ -104,11 +103,6 @@ public class Networks extends AbstractVLANSupport {
     @Override
     public InternetGateway getInternetGatewayById(@Nonnull String gatewayId) throws CloudException, InternalException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean isNetworkInterfaceSupportEnabled() throws CloudException, InternalException {
-        return false;
     }
 
     @Override
