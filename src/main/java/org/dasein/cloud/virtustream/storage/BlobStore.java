@@ -20,18 +20,23 @@
 package org.dasein.cloud.virtustream.storage;
 
 import org.apache.log4j.Logger;
-import org.dasein.cloud.*;
+import org.dasein.cloud.CloudErrorType;
+import org.dasein.cloud.CloudException;
+import org.dasein.cloud.CommunicationException;
+import org.dasein.cloud.GeneralCloudException;
+import org.dasein.cloud.InternalException;
+import org.dasein.cloud.OperationNotSupportedException;
+import org.dasein.cloud.ResourceNotFoundException;
 import org.dasein.cloud.identity.ServiceAction;
 import org.dasein.cloud.storage.AbstractBlobStoreSupport;
 import org.dasein.cloud.storage.Blob;
 import org.dasein.cloud.storage.BlobStoreCapabilities;
 import org.dasein.cloud.storage.FileTransfer;
 import org.dasein.cloud.util.APITrace;
-import org.dasein.cloud.util.NamingConstraints;
 import org.dasein.cloud.virtustream.Virtustream;
 import org.dasein.cloud.virtustream.VirtustreamMethod;
-import org.dasein.util.uom.storage.Storage;
 import org.dasein.util.uom.storage.Byte;
+import org.dasein.util.uom.storage.Storage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,8 +49,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.ParseException;
@@ -53,7 +58,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Locale;
 
 public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
     static private final Logger logger = Logger.getLogger(BlobStore.class);
@@ -600,7 +604,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
 
             if( input == null ) {
                 logger.error("No such file: " + bucket + "/" + object);
-                throw new ResourceNotFoundException("No such file: " + bucket + "/" + object);
+                throw new ResourceNotFoundException("File", bucket + "/" + object);
             }
             try {
                 copy(input, new FileOutputStream(toFile), transfer);
@@ -902,7 +906,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
                 }
                 if( storageRegionId == null || storageId == null ) {
                     logger.error("Storage with name " + storageName + " not found");
-                    throw new ResourceNotFoundException("Storage with name " + storageName + " not found");
+                    throw new ResourceNotFoundException("Storage", storageName);
                 }
             }
             catch( JSONException e ) {

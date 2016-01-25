@@ -128,7 +128,7 @@ public class Templates extends AbstractImageSupport<Virtustream> {
             }
             if (templateId == null) {
                 logger.error("Template created without error but no new id returned");
-                throw new ResourceNotFoundException("Template created without error but no new id returned");
+                throw new ResourceNotFoundException("New Template after capture", "n/a");
             }
 
             long timeout = System.currentTimeMillis()+(CalendarWrapper.MINUTE *5l);
@@ -146,7 +146,7 @@ public class Templates extends AbstractImageSupport<Virtustream> {
             }
             if( img == null ) {
                 logger.error("Machine image job completed successfully, but no image " + templateId + " exists.");
-                throw new ResourceNotFoundException("Machine image job completed successfully, but no image " + templateId + " exists.");
+                throw new ResourceNotFoundException("New Template (after capture job success)", templateId);
             }
 
             if( task != null ) {

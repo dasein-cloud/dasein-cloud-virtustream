@@ -20,18 +20,22 @@
 package org.dasein.cloud.virtustream.compute;
 
 import org.apache.log4j.Logger;
-import org.dasein.cloud.*;
+import org.dasein.cloud.CloudErrorType;
+import org.dasein.cloud.CloudException;
+import org.dasein.cloud.GeneralCloudException;
+import org.dasein.cloud.InternalException;
+import org.dasein.cloud.ResourceNotFoundException;
+import org.dasein.cloud.ResourceStatus;
 import org.dasein.cloud.compute.AbstractVMSupport;
 import org.dasein.cloud.compute.Architecture;
 import org.dasein.cloud.compute.MachineImage;
 import org.dasein.cloud.compute.Platform;
+import org.dasein.cloud.compute.VMFilterOptions;
+import org.dasein.cloud.compute.VMLaunchOptions;
 import org.dasein.cloud.compute.VirtualMachine;
 import org.dasein.cloud.compute.VirtualMachineCapabilities;
 import org.dasein.cloud.compute.VirtualMachineProduct;
 import org.dasein.cloud.compute.VirtualMachineProductFilterOptions;
-import org.dasein.cloud.compute.VMFilterOptions;
-import org.dasein.cloud.compute.VMLaunchOptions;
-import org.dasein.cloud.compute.VMScalingOptions;
 import org.dasein.cloud.compute.VmState;
 import org.dasein.cloud.dc.DataCenter;
 import org.dasein.cloud.network.RawAddress;
@@ -44,7 +48,6 @@ import org.dasein.cloud.virtustream.VirtustreamMethod;
 import org.dasein.cloud.virtustream.network.Networks;
 import org.dasein.util.CalendarWrapper;
 import org.dasein.util.uom.storage.Gigabyte;
-import org.dasein.util.uom.storage.Kilobyte;
 import org.dasein.util.uom.storage.Megabyte;
 import org.dasein.util.uom.storage.Storage;
 import org.dasein.util.uom.time.Day;
@@ -97,7 +100,7 @@ public class VirtualMachines extends AbstractVMSupport {
         try {
             VirtualMachine vm = getVirtualMachine(virtualMachineId);
             if (vm == null) {
-                throw new ResourceNotFoundException("Vm with id "+virtualMachineId+" does not exist.");
+                throw new ResourceNotFoundException("Vm", virtualMachineId);
             }
             VirtustreamMethod method = new VirtustreamMethod(provider);
 
@@ -192,7 +195,7 @@ public class VirtualMachines extends AbstractVMSupport {
             }
             if (newVMId == null) {
                 logger.error("Vm was cloned without error but new id not returned");
-                throw new ResourceNotFoundException("Vm was cloned without error but new id not returned");
+                throw new ResourceNotFoundException("Vm was cloned without error but new id", "n/a");
             }
             long timeout = System.currentTimeMillis()+(CalendarWrapper.MINUTE * 30);
             VirtualMachine vm = getVirtualMachine(newVMId);
@@ -206,7 +209,7 @@ public class VirtualMachines extends AbstractVMSupport {
                 }
                 catch (InterruptedException ignore) {}
             }
-            throw new ResourceNotFoundException("Vm was cloned without error but new vm not found");
+            throw new ResourceNotFoundException("Vm was cloned without error but new vm", "n/a");
         }
         finally {
             APITrace.end();
@@ -363,14 +366,14 @@ public class VirtualMachines extends AbstractVMSupport {
                 }
                 if (resourcePoolId == null) {
                     logger.error("No available resource pool in datacenter "+dc.getName());
-                    throw new ResourceNotFoundException("No available resource pool in datacenter "+dc.getName());
+                    throw new ResourceNotFoundException("Available resource pool in datacenter ", dc.getName());
                 }
 
                 //find a suitable storage location for the hard disk
                 String storageId = findAvailableStorage(capacityKB, dc);
                 if (storageId == null) {
                     logger.error("No available storage resource in datacenter "+dc.getName());
-                    throw new ResourceNotFoundException("No available storage resource in datacenter "+dc.getName());
+                    throw new ResourceNotFoundException("Available storage resource in datacenter ", dc.getName());
                 }
                 JSONObject disk = new JSONObject();
                 disk.put("StorageID", storageId);
@@ -477,13 +480,13 @@ public class VirtualMachines extends AbstractVMSupport {
                      //   vm.setRootPassword(password);
                         if (vm == null) {
                             logger.error("VM was launched and new id returned but it has not been found by Virtustream");
-                            throw new ResourceNotFoundException("VM was launched and new id returned ("+vmId+") but it has not been found by Virtustream");
+                            throw new ResourceNotFoundException("VM", vmId);
                         }
                         return vm;
                     }
                 }
                 logger.error("Vm was launched without error but new id not returned");
-                throw new ResourceNotFoundException("Vm was launched without error but new id not returned");
+                throw new ResourceNotFoundException("Vm was launched without error but new id", "n/a");
             }
             catch (JSONException e) {
                 logger.error(e);
