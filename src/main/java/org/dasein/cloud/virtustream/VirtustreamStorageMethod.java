@@ -53,6 +53,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Date;
 import java.util.Properties;
 
@@ -195,7 +196,7 @@ public class VirtustreamStorageMethod {
                     }
                     try {
                         post.setEntity(new StringEntity(body, "utf-8"));
-                    } catch (UnsupportedEncodingException e) {
+                    } catch (UnsupportedCharsetException e) {
                         logger.error("Unsupported encoding UTF-8: " + e.getMessage());
                         throw new InternalException(e);
                     }
