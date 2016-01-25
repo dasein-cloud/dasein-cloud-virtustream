@@ -58,6 +58,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.UnsupportedCharsetException;
 import java.security.SignatureException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -396,7 +397,7 @@ public class VirtustreamMethod {
                     post.addHeader("Authorization", "Keypair " + auth);
                     try {
                         post.setEntity(new StringEntity(body, "utf-8"));
-                    } catch (UnsupportedEncodingException e) {
+                    } catch (UnsupportedCharsetException e) {
                         logger.error("Unsupported encoding UTF-8: " + e.getMessage());
                         throw new InternalException(e);
                     }
