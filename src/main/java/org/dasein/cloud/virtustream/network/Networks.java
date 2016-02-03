@@ -26,8 +26,8 @@ import org.dasein.cloud.InternalException;
 import org.dasein.cloud.ResourceStatus;
 import org.dasein.cloud.Tag;
 import org.dasein.cloud.network.AbstractVLANSupport;
-import org.dasein.cloud.network.InternetGateway;
 import org.dasein.cloud.network.IPVersion;
+import org.dasein.cloud.network.InternetGateway;
 import org.dasein.cloud.network.VLAN;
 import org.dasein.cloud.network.VLANCapabilities;
 import org.dasein.cloud.network.VLANState;
@@ -43,7 +43,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Locale;
 
 public class Networks extends AbstractVLANSupport {
     static private final Logger logger = Logger.getLogger(Networks.class);
@@ -66,24 +65,6 @@ public class Networks extends AbstractVLANSupport {
             capabilities = new NetworkCapabilities(provider);
         }
         return capabilities;
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForNetworkInterface(@Nonnull Locale locale) {
-        return "NIC";
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForSubnet(@Nonnull Locale locale) {
-        return "Network";
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForVlan(@Nonnull Locale locale) {
-        return "Network";
     }
 
     @Override
@@ -142,24 +123,10 @@ public class Networks extends AbstractVLANSupport {
         }
     }
 
-    @Override
-    public boolean isVlanDataCenterConstrained() throws CloudException, InternalException {
-        return true;
-    }
-
     @Nonnull
     @Override
     public Collection<InternetGateway> listInternetGateways(@Nullable String vlanId) throws CloudException, InternalException {
         return Collections.emptyList();
-    }
-
-    @Nonnull
-    @Override
-    public Iterable<IPVersion> listSupportedIPVersions() throws CloudException, InternalException {
-        ArrayList<IPVersion> list = new ArrayList<IPVersion>();
-        list.add(IPVersion.IPV4);
-        list.add(IPVersion.IPV6);
-        return list;
     }
 
     @Nonnull

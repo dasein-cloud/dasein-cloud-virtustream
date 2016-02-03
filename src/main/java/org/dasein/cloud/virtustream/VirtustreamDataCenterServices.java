@@ -22,6 +22,7 @@ package org.dasein.cloud.virtustream;
 import org.apache.log4j.Logger;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.InternalException;
+import org.dasein.cloud.OperationNotSupportedException;
 import org.dasein.cloud.ProviderContext;
 import org.dasein.cloud.dc.*;
 import org.dasein.cloud.util.APITrace;
@@ -90,16 +91,6 @@ public class VirtustreamDataCenterServices implements DataCenterServices {
     }
 
     @Override
-    public String getProviderTermForDataCenter(Locale locale) {
-        return "Site";
-    }
-
-    @Override
-    public String getProviderTermForRegion(Locale locale) {
-        return "Region";
-    }
-
-    @Override
     public Region getRegion(String providerRegionId) throws InternalException, CloudException {
         APITrace.begin(provider, GET_REGION);
         try {
@@ -134,10 +125,6 @@ public class VirtustreamDataCenterServices implements DataCenterServices {
             Cache<DataCenter> cache = Cache.getInstance(provider, "dataCenters", DataCenter.class, CacheLevel.REGION_ACCOUNT, new TimePeriod<Minute>(15, TimePeriod.MINUTE));
             ProviderContext ctx = provider.getContext();
 
-            if( ctx == null ) {
-                logger.error("No context was set for this request");
-                throw new CloudException("No context was set for this request");
-            }
             Collection<DataCenter> dcs = (Collection<DataCenter>)cache.get(ctx);
 
             if( dcs == null ) {
@@ -177,10 +164,6 @@ public class VirtustreamDataCenterServices implements DataCenterServices {
             Cache<Region> cache = Cache.getInstance(provider, "regions", Region.class, CacheLevel.CLOUD_ACCOUNT, new TimePeriod<Minute>(15, TimePeriod.MINUTE));
             ProviderContext ctx = provider.getContext();
 
-            if( ctx == null ) {
-                logger.error("No context was set for this request");
-                throw new CloudException("No context was set for this request");
-            }
             Collection<Region> regions = (Collection<Region>)cache.get(ctx);
 
             if( regions == null ) {
@@ -305,16 +288,16 @@ public class VirtustreamDataCenterServices implements DataCenterServices {
 
     @Override
     public @Nonnull StoragePool getStoragePool( String providerStoragePoolId ) throws InternalException, CloudException {
-        throw new CloudException(provider.getCloudName() + " does not support storage pools.");
+        throw new OperationNotSupportedException(provider.getCloudName() + " does not support storage pools.");
     }
 
     @Override
     public @Nonnull Collection<Folder> listVMFolders() throws InternalException, CloudException {
-        throw new CloudException(provider.getCloudName() + " does not support VM folders.");
+        throw new OperationNotSupportedException(provider.getCloudName() + " does not support VM folders.");
     }
 
     @Override
     public @Nonnull Folder getVMFolder( String providerVMFolderId ) throws InternalException, CloudException {
-        throw new CloudException(provider.getCloudName() + " does not support VM folders.");
+        throw new OperationNotSupportedException(provider.getCloudName() + " does not support VM folders.");
     }
 }

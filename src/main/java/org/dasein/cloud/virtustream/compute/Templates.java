@@ -20,10 +20,7 @@
 package org.dasein.cloud.virtustream.compute;
 
 import org.apache.log4j.Logger;
-import org.dasein.cloud.AsynchronousTask;
-import org.dasein.cloud.CloudException;
-import org.dasein.cloud.InternalException;
-import org.dasein.cloud.ResourceStatus;
+import org.dasein.cloud.*;
 import org.dasein.cloud.compute.AbstractImageSupport;
 import org.dasein.cloud.compute.Architecture;
 import org.dasein.cloud.compute.ImageCapabilities;
@@ -131,7 +128,7 @@ public class Templates extends AbstractImageSupport<Virtustream> {
             }
             if (templateId == null) {
                 logger.error("Template created without error but no new id returned");
-                throw new CloudException("Template created without error but no new id returned");
+                throw new ResourceNotFoundException("New Template after capture", "n/a");
             }
 
             long timeout = System.currentTimeMillis()+(CalendarWrapper.MINUTE *5l);
@@ -149,7 +146,7 @@ public class Templates extends AbstractImageSupport<Virtustream> {
             }
             if( img == null ) {
                 logger.error("Machine image job completed successfully, but no image " + templateId + " exists.");
-                throw new CloudException("Machine image job completed successfully, but no image " + templateId + " exists.");
+                throw new ResourceNotFoundException("New Template (after capture job success)", templateId);
             }
 
             if( task != null ) {
@@ -160,12 +157,6 @@ public class Templates extends AbstractImageSupport<Virtustream> {
         finally {
             APITrace.end();
         }
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForImage(@Nonnull Locale locale, @Nonnull ImageClass cls) {
-        return "template";
     }
 
     @Override
@@ -180,7 +171,6 @@ public class Templates extends AbstractImageSupport<Virtustream> {
         try {
             try {
                 VirtustreamMethod method = new VirtustreamMethod(getProvider());
-                List<MachineImage> list = new ArrayList<MachineImage>();
                 method.getString("VirtualMachine?$filter=IsTemplate eq true and IsRemoved eq false", LIST_IMAGES);
                 return true;
             }
@@ -333,11 +323,6 @@ public class Templates extends AbstractImageSupport<Virtustream> {
         finally {
             APITrace.end();
         }
-    }
-
-    @Override
-    public boolean supportsCustomImages() throws CloudException, InternalException {
-        return true;
     }
 
     @Override

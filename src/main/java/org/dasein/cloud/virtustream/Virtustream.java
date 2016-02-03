@@ -21,10 +21,13 @@ package org.dasein.cloud.virtustream;
 
 import org.apache.log4j.Logger;
 import org.dasein.cloud.AbstractCloud;
+import org.dasein.cloud.CloudErrorType;
 import org.dasein.cloud.CloudException;
 import org.dasein.cloud.ContextRequirements;
+import org.dasein.cloud.GeneralCloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.ProviderContext;
+import org.dasein.cloud.ResourceNotFoundException;
 import org.dasein.cloud.util.APITrace;
 import org.dasein.cloud.virtustream.compute.VirtustreamComputeServices;
 import org.dasein.cloud.virtustream.network.VirtustreamNetworkServices;
@@ -34,7 +37,6 @@ import org.json.JSONObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -217,14 +219,14 @@ public class Virtustream extends AbstractCloud {
                                 if (key.contains("not found")) {
                                     String error = key+": "+errors.getString(key);
                                     logger.error("CloudException: "+error);
-                                    throw new CloudException("CloudException: "+error);
+                                    throw new ResourceNotFoundException(error, "n/a");
                                 }
                             }
                             //at this point just return the full error message
                             String error = json.getString("Errors");
                             String tmperror = error.substring(0, error.indexOf(":\""));
                             logger.error(error);
-                            throw new CloudException("CloudException: "+tmperror);
+                            throw new GeneralCloudException("CloudException: "+tmperror, CloudErrorType.GENERAL);
                         }
                     }
                     else {

@@ -19,12 +19,7 @@
 
 package org.dasein.cloud.virtustream;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
-import org.apache.http.StatusLine;
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -38,10 +33,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.dasein.cloud.CloudErrorType;
-import org.dasein.cloud.CloudException;
-import org.dasein.cloud.InternalException;
-import org.dasein.cloud.ProviderContext;
+import org.dasein.cloud.*;
 import org.dasein.cloud.util.APITrace;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,9 +78,29 @@ public class VirtustreamStorageMethod {
     static public final int BAD_REQUEST = 400;
 
     /**
+     * 401	Unauthorised    credentials don't match a valid account
+     */
+    static public final int UNAUTHORISED = 401;
+
+    /**
+     * 403	Forbidden   permissions issue with the credentials
+     */
+    static public final int FORBIDDEN = 403;
+
+    /**
      * 404	Not Found	Command, drive, server or other object not found
      */
     static public final int NOT_FOUND = 404;
+
+    /**
+     * 429 Too many requests	The user has sent too many requests in a given amount of time
+     */
+    static public final int TOO_MANY_REQUESTS = 429;
+
+    /**
+     * 503	Service Unavailable     The server is currently unavailable (because it is overloaded or down for maintenance).
+     */
+    static public final int SERVICE_UNAVAILABLE = 503;
 
     private Virtustream provider;
 
@@ -193,12 +205,7 @@ public class VirtustreamStorageMethod {
                     if (sessionId != null) {
                         post.addHeader("Cookie", "xs-session="+sessionId);
                     }
-                    try {
-                        post.setEntity(new StringEntity(body, "utf-8"));
-                    } catch (UnsupportedEncodingException e) {
-                        logger.error("Unsupported encoding UTF-8: " + e.getMessage());
-                        throw new InternalException(e);
-                    }
+                    post.setEntity(new StringEntity(body, "utf-8"));
 
                     if (wire.isDebugEnabled()) {
                         wire.debug(post.getRequestLine().toString());
@@ -218,7 +225,7 @@ public class VirtustreamStorageMethod {
                         status = response.getStatusLine();
                     } catch (IOException e) {
                         logger.error("Failed to execute HTTP request due to a cloud I/O error: " + e.getMessage());
-                        throw new CloudException(e);
+                        throw new CommunicationException("Failed to execute HTTP request", e);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("HTTP Status " + status);
@@ -242,9 +249,29 @@ public class VirtustreamStorageMethod {
                     if (status.getStatusCode() != OK && status.getStatusCode() != NO_CONTENT && status.getStatusCode() != CREATED && status.getStatusCode() != ACCEPTED) {
                         logger.error("Expected OK for POST request, got " + status.getStatusCode());
                         HttpEntity entity = response.getEntity();
+                        CloudErrorType errorType;
+
+                        switch ((status.getStatusCode())) {
+                            case BAD_REQUEST:
+                                errorType = CloudErrorType.INVALID_USER_DATA;
+                                break;
+                            case UNAUTHORISED:
+                            case FORBIDDEN:
+                                errorType = CloudErrorType.AUTHENTICATION;
+                                break;
+                            case SERVICE_UNAVAILABLE:
+                                errorType = CloudErrorType.COMMUNICATION;
+                                break;
+                            case TOO_MANY_REQUESTS:
+                                errorType = CloudErrorType.THROTTLING;
+                                break;
+                            default:
+                                errorType = CloudErrorType.GENERAL;
+                                break;
+                        }
 
                         if (entity == null) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
                         }
                         try {
                             body = EntityUtils.toString(entity);
@@ -255,7 +282,7 @@ public class VirtustreamStorageMethod {
                             wire.debug(body);
                         }
                         wire.debug("");
-                        throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), body);
+                        throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), body);
                     } else {
                         HttpEntity entity = response.getEntity();
 
@@ -345,7 +372,7 @@ public class VirtustreamStorageMethod {
                         status = response.getStatusLine();
                     } catch (IOException e) {
                         logger.error("Failed to execute HTTP request due to a cloud I/O error: " + e.getMessage());
-                        throw new CloudException(e);
+                        throw new CommunicationException("Failed to execute HTTP request", e);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("HTTP Status " + status);
@@ -369,9 +396,29 @@ public class VirtustreamStorageMethod {
                     if (status.getStatusCode() != OK && status.getStatusCode() != NO_CONTENT && status.getStatusCode() != CREATED && status.getStatusCode() != ACCEPTED) {
                         logger.error("Expected OK for POST request, got " + status.getStatusCode());
                         HttpEntity entity = response.getEntity();
+                        CloudErrorType errorType;
+
+                        switch ((status.getStatusCode())) {
+                            case BAD_REQUEST:
+                                errorType = CloudErrorType.INVALID_USER_DATA;
+                                break;
+                            case UNAUTHORISED:
+                            case FORBIDDEN:
+                                errorType = CloudErrorType.AUTHENTICATION;
+                                break;
+                            case SERVICE_UNAVAILABLE:
+                                errorType = CloudErrorType.COMMUNICATION;
+                                break;
+                            case TOO_MANY_REQUESTS:
+                                errorType = CloudErrorType.THROTTLING;
+                                break;
+                            default:
+                                errorType = CloudErrorType.GENERAL;
+                                break;
+                        }
 
                         if (entity == null) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
                         }
                         try {
                             body = EntityUtils.toString(entity);
@@ -382,7 +429,7 @@ public class VirtustreamStorageMethod {
                             wire.debug(body);
                         }
                         wire.debug("");
-                        throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), body);
+                        throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), body);
                     } else {
                         HttpEntity entity = response.getEntity();
 
@@ -471,7 +518,7 @@ public class VirtustreamStorageMethod {
                         status = response.getStatusLine();
                     } catch (IOException e) {
                         logger.error("Failed to execute HTTP request due to a cloud I/O error: " + e.getMessage());
-                        throw new CloudException(e);
+                        throw new CommunicationException("Failed to execute HTTP request", e);
                     }
                     if (logger.isDebugEnabled()) {
                         logger.debug("HTTP Status " + status);
@@ -495,10 +542,30 @@ public class VirtustreamStorageMethod {
                     if (status.getStatusCode() != OK && status.getStatusCode() != NO_CONTENT && status.getStatusCode() != CREATED && status.getStatusCode() != ACCEPTED) {
                         logger.error("Expected OK for POST request, got " + status.getStatusCode());
                         HttpEntity entity = response.getEntity();
+                        CloudErrorType errorType;
+
+                        switch ((status.getStatusCode())) {
+                            case BAD_REQUEST:
+                                errorType = CloudErrorType.INVALID_USER_DATA;
+                                break;
+                            case UNAUTHORISED:
+                            case FORBIDDEN:
+                                errorType = CloudErrorType.AUTHENTICATION;
+                                break;
+                            case SERVICE_UNAVAILABLE:
+                                errorType = CloudErrorType.COMMUNICATION;
+                                break;
+                            case TOO_MANY_REQUESTS:
+                                errorType = CloudErrorType.THROTTLING;
+                                break;
+                            default:
+                                errorType = CloudErrorType.GENERAL;
+                                break;
+                        }
 
                         String body;
                         if (entity == null) {
-                            throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
+                            throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), status.getReasonPhrase());
                         }
                         try {
                             body = EntityUtils.toString(entity);
@@ -509,7 +576,7 @@ public class VirtustreamStorageMethod {
                             wire.debug(body);
                         }
                         wire.debug("");
-                        throw new VirtustreamException(CloudErrorType.GENERAL, status.getStatusCode(), status.getReasonPhrase(), body);
+                        throw new VirtustreamException(errorType, status.getStatusCode(), status.getReasonPhrase(), body);
                     } else {
                         HttpEntity entity = response.getEntity();
 

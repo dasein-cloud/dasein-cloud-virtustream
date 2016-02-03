@@ -20,20 +20,23 @@
 package org.dasein.cloud.virtustream.storage;
 
 import org.apache.log4j.Logger;
+import org.dasein.cloud.CloudErrorType;
 import org.dasein.cloud.CloudException;
+import org.dasein.cloud.CommunicationException;
+import org.dasein.cloud.GeneralCloudException;
 import org.dasein.cloud.InternalException;
 import org.dasein.cloud.OperationNotSupportedException;
+import org.dasein.cloud.ResourceNotFoundException;
 import org.dasein.cloud.identity.ServiceAction;
 import org.dasein.cloud.storage.AbstractBlobStoreSupport;
 import org.dasein.cloud.storage.Blob;
 import org.dasein.cloud.storage.BlobStoreCapabilities;
 import org.dasein.cloud.storage.FileTransfer;
 import org.dasein.cloud.util.APITrace;
-import org.dasein.cloud.util.NamingConstraints;
 import org.dasein.cloud.virtustream.Virtustream;
 import org.dasein.cloud.virtustream.VirtustreamMethod;
-import org.dasein.util.uom.storage.Storage;
 import org.dasein.util.uom.storage.Byte;
+import org.dasein.util.uom.storage.Storage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,8 +49,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.ParseException;
@@ -55,7 +58,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Locale;
 
 public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
     static private final Logger logger = Logger.getLogger(BlobStore.class);
@@ -87,21 +89,6 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
         return capabilities;
     }
 
-
-    @Override
-    public boolean allowsNestedBuckets() throws CloudException, InternalException {
-        return true;
-    }
-
-    @Override
-    public boolean allowsRootObjects() throws CloudException, InternalException {
-        return false;
-    }
-
-    @Override
-    public boolean allowsPublicSharing() throws CloudException, InternalException {
-        return false;
-    }
 
     @Nonnull
     @Override
@@ -326,45 +313,6 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
     }
 
     @Override
-    public int getMaxBuckets() throws CloudException, InternalException {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public Storage<Byte> getMaxObjectSize() throws InternalException, CloudException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public int getMaxObjectsPerBucket() throws CloudException, InternalException {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public @Nonnull
-    NamingConstraints getBucketNameRules() throws CloudException, InternalException {
-        //return NameRules.getInstance(minChars, maxChars, mixedCase, allowNumbers, latin1Only, specialChars);
-        return NamingConstraints.getAlphaNumeric(1, 255).limitedToLatin1().constrainedBy(new char[] { '-', '.' });
-    }
-
-    @Override
-    public @Nonnull NamingConstraints getObjectNameRules() throws CloudException, InternalException {
-        return NamingConstraints.getAlphaNumeric(1, 255).limitedToLatin1().constrainedBy(new char[] { '-', '.', ',', '#', '+' });
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForBucket(@Nonnull Locale locale) {
-        return "Storage";
-    }
-
-    @Nonnull
-    @Override
-    public String getProviderTermForObject(@Nonnull Locale locale) {
-        return "File";
-    }
-
-    @Override
     public boolean isPublic(@Nullable String bucket, @Nullable String object) throws CloudException, InternalException {
         return false;
     }
@@ -558,8 +506,11 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
         APITrace.begin(getProvider(), UPLOAD_FILE);
         try {
             if( bucket == null ) {
+                //todo
+                //this isn't really a dasein problem but neither is it a fault returned from the cloud
+                //should we have a new exception for errors due to user/client provided data?
                 logger.error("No bucket was specified for this request");
-                throw new OperationNotSupportedException("No bucket was specified for this request");
+                throw new InternalException("No bucket was specified for this request");
             }
             if( !exists(bucket) ) {
                 logger.error("Creating new bucket not supported for cloud");
@@ -580,7 +531,10 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
         try {
             if( bucket == null ) {
                 logger.error("No bucket was specified");
-                throw new CloudException("No bucket was specified");
+                //todo
+                //this isn't really a dasein problem but neither is it a fault returned from the cloud
+                //should we have a new exception for errors due to user/client provided data?
+                throw new InternalException("No bucket was specified");
             }
 
             InputStream input = null;
@@ -634,12 +588,12 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
                         logger.error(ex);
                         //cancel upload
                         method.postString("/fileService/"+fileTransferID+"/CancelDownload", "", CANCEL_DOWNLOAD);
-                        throw new CloudException(ex);
+                        throw new GeneralCloudException("Error completing file download", ex, CloudErrorType.GENERAL);
                     }
                 }
                 else {
                     logger.error("Unable to transfer file as initiation failed");
-                    throw new InternalException("Unable to transfer file as initiation failed");
+                    throw new GeneralCloudException("Unable to transfer file as initiation failed", CloudErrorType.GENERAL);
                 }
             }
             catch (JSONException e) {
@@ -650,7 +604,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
 
             if( input == null ) {
                 logger.error("No such file: " + bucket + "/" + object);
-                throw new CloudException("No such file: " + bucket + "/" + object);
+                throw new ResourceNotFoundException("File", bucket + "/" + object);
             }
             try {
                 copy(input, new FileOutputStream(toFile), transfer);
@@ -661,7 +615,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
             }
             catch( IOException e ) {
                 logger.error("Could not fetch file to " + toFile + ": " + e.getMessage());
-                throw new CloudException(e);
+                throw new InternalException(e);
             }
         }
         finally {
@@ -702,7 +656,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
                 return response;
             }
             catch( IOException e ) {
-                throw new CloudException(e);
+                throw new CommunicationException("Error getting blocks", e);
             }
         }
         finally{
@@ -718,7 +672,10 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
     @Override
     protected void put(@Nullable String bucket, @Nonnull String objectName, @Nonnull File file) throws InternalException, CloudException {
         if( bucket == null ) {
-            throw new CloudException("No bucket was specified");
+            //todo
+            //this isn't really a dasein problem but neither is it a fault returned from the cloud
+            //should we have a new exception for errors due to user/client provided data?
+            throw new InternalException("No bucket was specified");
         }
         String fileTransferID = null;
 
@@ -841,7 +798,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
                 }
             }
             catch( IOException e ) {
-                throw new CloudException(e);
+                throw new InternalException(e);
             }
         }
         catch (Exception ex) {
@@ -849,7 +806,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
             //cancel upload
             VirtustreamMethod method = new VirtustreamMethod(getProvider());
             method.postString("/fileService/"+fileTransferID+"/CancelUpload", "", CANCEL_UPLOAD);
-            throw new CloudException(ex);
+            throw new GeneralCloudException("Error uploading", ex, CloudErrorType.GENERAL);
         }
         finally{
             try { input.close(); }
@@ -949,7 +906,7 @@ public class BlobStore extends AbstractBlobStoreSupport<Virtustream> {
                 }
                 if( storageRegionId == null || storageId == null ) {
                     logger.error("Storage with name " + storageName + " not found");
-                    throw new InternalException("Storage with name " + storageName + " not found");
+                    throw new ResourceNotFoundException("Storage", storageName);
                 }
             }
             catch( JSONException e ) {
